@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+const appName = process.env.APP_NAME || 'Goti Delivery Platform';
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState('user');
@@ -13,7 +14,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/">
-              <button className="font-bold text-gray-700 hover:text-blue-600 cursor-pointer">Dalivery Platform</button>
+              <button className="font-bold text-gray-700 hover:text-blue-600 cursor-pointer">{appName}</button>
             </Link>
           <div className="hidden md:flex space-x-10 text-sm font-bold uppercase tracking-widest text-gray-500">
             <a href="#services" className="hover:text-blue-600 transition">Services</a>

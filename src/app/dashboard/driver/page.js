@@ -79,19 +79,6 @@ export default function DriverDashboard() {
           </div>
         </div>
       </div>
-
-      {/* Bottom Navigation (Mobile Style) */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 h-20 flex items-center justify-around px-6">
-        <button className="text-blue-600 flex flex-col items-center">
-          <span className="text-xs font-bold mt-1">Home</span>
-        </button>
-        <button className="text-gray-400 flex flex-col items-center">
-          <span className="text-xs font-bold mt-1">Orders</span>
-        </button>
-        <button className="text-gray-400 flex flex-col items-center">
-          <span className="text-xs font-bold mt-1">Account</span>
-        </button>
-      </div>
     </div>
   );
 }

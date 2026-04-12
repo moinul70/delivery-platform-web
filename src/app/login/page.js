@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import useAuthStore from '@/store/authStore';
 import Cookies from 'js-cookie';
 
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
   const [loading, setLoading] = useState(false);
+  const APP_NAME = process.env.APP_NAME || 'Goti Delivery Platform';
 
 
 
@@ -24,15 +26,30 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const data = await post('api/v1/login', { email, password });
 
-      // save token + user to store (also persisted to localStorage)
-      setAuth(data.token, data.user);
+      const endpoints = {
+        user: 'api/v1/login',
+        driver: 'api/v1/driver/login',
+      };
+
+      const userKey = {
+        user: 'user',
+        driver: 'driver',
+      };
+
+      if (!endpoints[role]) throw new Error('Invalid role selected');
+
+      const data = await post(endpoints[role], { email, password });
+
+      //  save to Zustand
+      setAuth(data.token, data[userKey[role]]);
+
+      //  save to cookies (for middleware)
       Cookies.set('token', data.token, { secure: true, sameSite: 'strict' });
       Cookies.set('role', role, { secure: true, sameSite: 'strict' });
-
       router.push(`/dashboard/${role}`);
     } catch (err) {
+      console.log('Login error:', err);
       setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
@@ -46,7 +63,7 @@ export default function LoginPage() {
 
         <div className="text-center mb-10">
           <h1 className="text-3xl font-black text-gray-900">Welcome Back</h1>
-          <p className="text-gray-500 mt-2">Log in to your Mochor Delivery Platform account</p>
+          <p className="text-gray-500 mt-2">Log in to your {APP_NAME} account</p>
         </div>
 
         {/* Role Selection */}
