@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/store/authStore';
 import { get } from '@/lib/api';
+import ConfirmModal from '@/app/components/orders/ConfirmOrderModal';
 
 export default function OrderListPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function OrderListPage() {
   const [orders, setOrders]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -32,8 +34,13 @@ export default function OrderListPage() {
 
     fetchOrders();
   }, [token]);
-
+ const handleConfirmed = (orderId) => {
+    setOrders((prev) =>
+      prev.map((o) => o.id === orderId ? { ...o, status: 'confirmed' } : o)
+    );
+  };
   return (
+    
     <div>
       {/*  Header with create button */}
       <div className="flex items-center justify-between mb-6">
@@ -55,7 +62,13 @@ export default function OrderListPage() {
       {error && (
         <p className="text-red-500 text-sm">{error}</p>
       )}
-
+{selectedOrder && (
+        <ConfirmModal
+          order={selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+          onConfirmed={handleConfirmed}
+        />
+      )}
       {/* Empty state */}
       {!loading && !error && orders.length === 0 && (
         <div className="text-center py-16 border border-dashed border-gray-200 rounded-2xl">
@@ -70,33 +83,99 @@ export default function OrderListPage() {
       )}
 
       {/*  Order list */}
-      {!loading && orders.length > 0 && (
-        <div className="space-y-3">
-          {orders.map((order) => (
-            <div key={order.id} className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="font-bold text-gray-800">Order #{order.order_number}</p>
-                <p className="text-sm text-gray-400">
-                  {order.pickup.latitude}, {order.pickup.longitude}
-                  <span className="mx-2">→</span>
-                  {order.delivery.latitude}, {order.delivery.longitude}
-                </p>
-              </div>
-              <div className="text-right space-y-1">
-                <p className="font-bold text-gray-800">৳{order.amount}</p>
-                <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
-                  order.status === 'delivered'  ? 'bg-green-50 text-green-600'  :
-                  order.status === 'pending'    ? 'bg-yellow-50 text-yellow-600':
-                  order.status === 'cancelled'  ? 'bg-red-50 text-red-500'     :
-                  'bg-blue-50 text-blue-600'
-                }`}>
-                  {order.status ?? 'pending'}
-                </span>
-              </div>
-            </div>
-          ))}
+{!loading && orders.length > 0 && (
+  <div className="space-y-3">
+    {orders.map((order) => (
+      <div key={order.id} className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+
+        {/* ── Row 1: order number + status + amount ── */}
+        <div className="flex items-center justify-between">
+          <p className="font-bold text-gray-800">Order #{order.order_number}</p>
+          <div className="flex items-center gap-3">
+            <p className="font-bold text-gray-800">৳{order.payment.amount}</p>
+            <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
+              order.status === 'delivered' ? 'bg-green-50 text-green-600'   :
+              order.status === 'pending'   ? 'bg-yellow-50 text-yellow-600' :
+              order.status === 'cancelled' ? 'bg-red-50 text-red-500'       :
+              'bg-blue-50 text-blue-600'
+            }`}>
+              {order.status ?? 'pending'}
+            </span>
+          </div>
         </div>
-      )}
+
+        {/* ── Row 2: pickup → delivery ── */}
+        <p className="text-sm text-gray-400">
+          {order.pickup.latitude}, {order.pickup.longitude}
+          <span className="mx-2">→</span>
+          {order.delivery.latitude}, {order.delivery.longitude}
+        </p>
+
+        {/* ── Row 3: dates + driver ── */}
+        <div className="flex items-center gap-6 pt-2 border-t border-gray-100 flex-wrap">
+
+          {/* Created at */}
+          <div>
+            <p className="text-xs text-gray-400">Created</p>
+            <p className="text-sm font-bold text-gray-600">
+              {order.timeline.created_at
+                ? new Date(order.timeline.created_at).toLocaleString()
+                : '—'}
+            </p>
+          </div>
+
+          {/* Assigned at */}
+          <div>
+            <p className="text-xs text-gray-400">Assigned</p>
+            <p className="text-sm font-bold text-gray-600">
+              {order.timeline.assigned_at
+                ? new Date(order.timeline.assigned_at).toLocaleString()
+                : 'Not assigned'}
+            </p>
+          </div>
+          {/* Accepted at */}
+          <div>
+            <p className="text-xs text-gray-400">Accepted</p>
+            <p className="text-sm font-bold text-gray-600">
+              {order.timeline.accepted_at
+                ? new Date(order.timeline.accepted_at).toLocaleString()
+                : 'Not accepted'}
+            </p>
+          </div>
+          {/* Picked up at */}
+          <div>
+            <p className="text-xs text-gray-400">Picked up</p>
+            <p className="text-sm font-bold text-gray-600">
+              {order.timeline.picked_up_at
+                ? new Date(order.timeline.picked_up_at).toLocaleString()
+                : 'Not picked up'}
+            </p>
+          </div>
+
+          {/* Driver */}
+          <div>
+            <p className="text-xs text-gray-400">Driver</p>
+            <p className="text-sm font-bold text-gray-600">
+              {order.driver?.name ?? 'Not assigned'}
+            </p>
+          </div>
+          {/* ✅ confirm button — only show when pending */}
+                {order.status === 'delivered' && (
+                  <div className="ml-auto">
+                    <button
+                      onClick={() => setSelectedOrder(order)}
+                      className="bg-blue-600 text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-blue-700"
+                    >
+                      Confirm Order
+                    </button>
+                  </div>
+                )}
+
+        </div>
+      </div>
+    ))}
+  </div>
+)}
     </div>
   );
 }

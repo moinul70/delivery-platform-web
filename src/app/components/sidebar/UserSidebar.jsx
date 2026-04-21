@@ -9,10 +9,10 @@ export default function UserSidebar() {
   const { logout } = useLogout();
   const user = useAuthStore((state) => state.user);
   const pathname = usePathname();
-console.log('Current pathname:', pathname); // Debugging line
+
   const navClass = (href) =>
     `block p-3 rounded-xl font-bold transition-colors ${
-      pathname === href || pathname.startsWith(href + '/')
+      pathname === href
         ? 'bg-blue-50 text-blue-600'
         : 'text-gray-600 hover:bg-gray-50'
     }`;

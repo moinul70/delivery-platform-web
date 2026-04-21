@@ -33,14 +33,14 @@ export default function CreateOrderPage() {
       const res = await post('api/v1/orders/create', form, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,   // ✅ auth token from Zustand
+          'Authorization': `Bearer ${token}`,  
         },
         body: JSON.stringify(form),
       });
 
       if (!res.ok) throw new Error('Failed to create order');
 
-      router.push('/dashboard/user'); // ✅ redirect after success
+      router.push('/dashboard/user/orders'); 
     } catch (err) {
       setError(err.message);
     } finally {
@@ -50,7 +50,7 @@ export default function CreateOrderPage() {
 
   return (
     <div className="max-w-lg mx-auto">
-      <h2 className="text-xl font-bold text-gray-800 mb-6">Create order</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-6 cursor-pointer">Create order</h2>
 
       <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
 
@@ -90,7 +90,7 @@ export default function CreateOrderPage() {
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        <button type="submit" disabled={loading} className="w-full bg-black text-white py-3 rounded-xl font-bold hover:opacity-80 disabled:opacity-50">
+        <button type="submit" disabled={loading} className="w-full bg-black text-white py-3 rounded-xl font-bold hover:opacity-80 disabled:opacity-50 cursor-pointer">
           {loading ? 'Placing order...' : 'Place order'}
         </button>
       </form>
